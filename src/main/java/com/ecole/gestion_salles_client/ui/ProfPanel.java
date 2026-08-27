@@ -18,10 +18,11 @@ public class ProfPanel extends JPanel {
     private final JPanel listContainer = new JPanel();
     private final JTextField txtRecherche = new JTextField();
 
-    private final JTextField txtCode = new JTextField(8);
-    private final JTextField txtNom = new JTextField(10);
-    private final JTextField txtPrenom = new JTextField(10);
-    private final JTextField txtGrade = new JTextField(10);
+    private final JTextField txtCode = new JTextField(3);
+    private final JTextField txtNom = new JTextField(12);
+    private final JTextField txtPrenom = new JTextField(15);
+    private final JTextField txtGrade = new JTextField(17);
+    private JPanel selectedRow = null;
 
     private List<Prof> tousLesProfs = List.of();
 
@@ -51,7 +52,9 @@ public class ProfPanel extends JPanel {
 
         JPanel searchWrap = new JPanel(new BorderLayout());
         searchWrap.setOpaque(false);
-        searchWrap.add(new JLabel(" 🔍 "), BorderLayout.WEST);
+        JLabel searchIcon = new JLabel(new NavIcons(NavIcons.Type.SEARCH, Theme.TEXT_GRAY, 15));
+        searchIcon.setBorder(BorderFactory.createEmptyBorder(0, 6, 0, 8));
+        searchWrap.add(searchIcon, BorderLayout.WEST);
         searchWrap.add(txtRecherche, BorderLayout.CENTER);
         searchWrap.setBackground(new Color(245, 245, 243));
         searchWrap.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
@@ -83,9 +86,12 @@ public class ProfPanel extends JPanel {
         form.add(lblPrenom); form.add(txtPrenom);
         form.add(lblGrade); form.add(txtGrade);
 
-        JButton btnAjouter = new JButton("Ajouter");
-        JButton btnModifier = new JButton("Modifier");
-        JButton btnSupprimer = new JButton("Supprimer");
+        JButton btnAjouter = new JButton("Ajouter", new NavIcons(NavIcons.Type.PLUS, Color.WHITE, 13));
+        JButton btnModifier = new JButton("Modifier", new NavIcons(NavIcons.Type.EDIT, new Color(30, 41, 59), 13));
+        JButton btnSupprimer = new JButton("Supprimer", new NavIcons(NavIcons.Type.TRASH, new Color(220, 38, 38), 13));
+        btnAjouter.setIconTextGap(8);
+        btnModifier.setIconTextGap(8);
+        btnSupprimer.setIconTextGap(8);
         Theme.primaryButton(btnAjouter);
         Theme.secondaryButton(btnModifier);
         Theme.dangerButton(btnSupprimer);
@@ -132,6 +138,7 @@ public class ProfPanel extends JPanel {
 
     private void afficherListe(List<Prof> profs) {
         listContainer.removeAll();
+        selectedRow = null;
         for (Prof p : profs) {
             listContainer.add(buildRow(p));
             listContainer.add(Box.createVerticalStrut(4));
@@ -173,6 +180,26 @@ public class ProfPanel extends JPanel {
                 txtNom.setText(p.getNom());
                 txtPrenom.setText(safe(p.getPrenom()));
                 txtGrade.setText(safe(p.getGrade()));
+
+                if (selectedRow != null) {
+                    selectedRow.setBackground(Color.WHITE);
+                }
+                row.setBackground(new Color(224, 231, 255));
+                selectedRow = row;
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (row != selectedRow) {
+                    row.setBackground(new Color(243, 244, 251));
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (row != selectedRow) {
+                    row.setBackground(Color.WHITE);
+                }
             }
         });
         row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

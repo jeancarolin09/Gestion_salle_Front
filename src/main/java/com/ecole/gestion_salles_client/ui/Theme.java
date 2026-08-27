@@ -61,8 +61,7 @@ public final class Theme {
     public static void styledField(JTextComponent field) {
         field.setFont(FONT_BODY);
         field.putClientProperty("FlatLaf.style",
-                "arc: 8; focusedBorderColor: #4F46E5; borderColor: #E2E8F0; " +
-                        "hoverBorderColor: #A5B4FC");
+                "arc: 8; focusedBorderColor: #4F46E5; borderColor: #E2E8F0");
         field.setBorder(BorderFactory.createCompoundBorder(
                 field.getBorder(),
                 BorderFactory.createEmptyBorder(5, 9, 5, 9)));

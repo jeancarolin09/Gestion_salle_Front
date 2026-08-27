@@ -73,15 +73,16 @@ public class OccuperPanel extends JPanel {
         titles.add(sousTitre);
         wrapper.add(titles, BorderLayout.WEST);
 
-        JButton btnNouvelle = new JButton("+ Nouvelle réservation");
+        JButton btnNouvelle = new JButton("Nouvelle réservation", new NavIcons(NavIcons.Type.PLUS, Color.WHITE, 13));
+        btnNouvelle.setIconTextGap(8);
         Theme.primaryButton(btnNouvelle);
         btnNouvelle.addActionListener(e -> ouvrirDialogAjout(null, null));
         wrapper.add(btnNouvelle, BorderLayout.EAST);
 
         JPanel nav = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 10));
         nav.setOpaque(false);
-        JButton btnPrev = new JButton("◀");
-        JButton btnNext = new JButton("▶");
+        JButton btnPrev = new JButton(new NavIcons(NavIcons.Type.CHEVRON_LEFT, new Color(71, 85, 105), 13));
+        JButton btnNext = new JButton(new NavIcons(NavIcons.Type.CHEVRON_RIGHT, new Color(71, 85, 105), 13));
         JButton btnToday = new JButton("Aujourd'hui");
         Theme.secondaryButton(btnPrev);
         Theme.secondaryButton(btnNext);
@@ -229,16 +230,33 @@ public class OccuperPanel extends JPanel {
         } else {
             cell.setBackground(new Color(252, 165, 165));
             cell.setBorder(BorderFactory.createEmptyBorder(4, 6, 4, 6));
-            JLabel lbl = new JLabel("<html><b>⚠ Conflit</b><br>(" + match.size() + " profs)</html>");
-            lbl.setFont(new Font("Segoe UI", Font.PLAIN, 11));
-            lbl.setForeground(new Color(127, 29, 29));
-            cell.add(lbl, BorderLayout.CENTER);
-            cell.addMouseListener(new java.awt.event.MouseAdapter() {
+
+            JPanel warnPanel = new JPanel();
+            warnPanel.setOpaque(false);
+            warnPanel.setLayout(new BoxLayout(warnPanel, BoxLayout.Y_AXIS));
+
+            JLabel iconLbl = new JLabel(new NavIcons(NavIcons.Type.WARNING, new Color(127, 29, 29), 16));
+            iconLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            JLabel textLbl = new JLabel("Conflit (" + match.size() + ")");
+            textLbl.setFont(new Font("Segoe UI", Font.BOLD, 10));
+            textLbl.setForeground(new Color(127, 29, 29));
+            textLbl.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+            warnPanel.add(iconLbl);
+            warnPanel.add(textLbl);
+            cell.add(warnPanel, BorderLayout.CENTER);
+
+            java.awt.event.MouseAdapter clickHandler = new java.awt.event.MouseAdapter() {
                 @Override
                 public void mouseClicked(java.awt.event.MouseEvent e) {
                     afficherDetails(match);
                 }
-            });
+            };
+            cell.addMouseListener(clickHandler);
+            warnPanel.addMouseListener(clickHandler);
+            iconLbl.addMouseListener(clickHandler);
+            textLbl.addMouseListener(clickHandler);
         }
         return cell;
     }
@@ -284,7 +302,8 @@ public class OccuperPanel extends JPanel {
                     + safe(o.getProf().getGrade()) + "</span></html>");
             row.add(infoLabel, BorderLayout.CENTER);
 
-            JButton btnSupprimer = new JButton("Supprimer");
+            JButton btnSupprimer = new JButton("Supprimer", new NavIcons(NavIcons.Type.TRASH, new Color(220, 38, 38), 13));
+            btnSupprimer.setIconTextGap(6);
             Theme.dangerButton(btnSupprimer);
             btnSupprimer.addActionListener(e -> {
                 try {
@@ -327,7 +346,7 @@ public class OccuperPanel extends JPanel {
         JComboBox<String> comboProf = new JComboBox<>();
         JComboBox<String> comboSalle = new JComboBox<>();
         try {
-            for (Prof p : profApi.getAll()) comboProf.addItem(p.getCodeProf());
+            for (Prof p : profApi.getAll()) comboProf.addItem(p.getNom());
             for (Salle s : salleApi.getAll()) comboSalle.addItem(s.getCodeSal());
         } catch (Exception ex) {
             erreur(ex);
@@ -354,7 +373,8 @@ public class OccuperPanel extends JPanel {
         JPanel boutons = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         boutons.setOpaque(false);
         JButton btnAnnuler = new JButton("Annuler");
-        JButton btnAjouter = new JButton("Ajouter");
+        JButton btnAjouter = new JButton("Ajouter", new NavIcons(NavIcons.Type.PLUS, Color.WHITE, 13));
+        btnAjouter.setIconTextGap(6);
         Theme.secondaryButton(btnAnnuler);
         Theme.primaryButton(btnAjouter);
         btnAnnuler.addActionListener(e -> dialog.dispose());

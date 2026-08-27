@@ -15,7 +15,8 @@ public class SallePanel extends JPanel {
     private final JPanel listContainer = new JPanel();
 
     private final JTextField txtCode = new JTextField(8);
-    private final JTextField txtDesignation = new JTextField(15);
+    private final JTextField txtDesignation = new JTextField(18);
+    private JPanel selectedRow = null;
 
     public SallePanel() {
         setLayout(new BorderLayout(0, 16));
@@ -54,9 +55,12 @@ public class SallePanel extends JPanel {
         Theme.styledField(txtCode);
         Theme.styledField(txtDesignation);
 
-        JButton btnAjouter = new JButton("Ajouter");
-        JButton btnModifier = new JButton("Modifier");
-        JButton btnSupprimer = new JButton("Supprimer");
+        JButton btnAjouter = new JButton("Ajouter", new NavIcons(NavIcons.Type.PLUS, Color.WHITE, 13));
+        JButton btnModifier = new JButton("Modifier", new NavIcons(NavIcons.Type.EDIT, new Color(30, 41, 59), 13));
+        JButton btnSupprimer = new JButton("Supprimer", new NavIcons(NavIcons.Type.TRASH, new Color(220, 38, 38), 13));
+        btnAjouter.setIconTextGap(8);
+        btnModifier.setIconTextGap(8);
+        btnSupprimer.setIconTextGap(8);
         Theme.primaryButton(btnAjouter);
         Theme.secondaryButton(btnModifier);
         Theme.dangerButton(btnSupprimer);
@@ -80,6 +84,7 @@ public class SallePanel extends JPanel {
 
     private void afficherListe(List<Salle> salles) {
         listContainer.removeAll();
+        selectedRow = null;
         for (Salle s : salles) {
             listContainer.add(buildRow(s));
             listContainer.add(Box.createVerticalStrut(4));
@@ -94,7 +99,8 @@ public class SallePanel extends JPanel {
         row.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
 
-        JLabel icone = new JLabel("🚪", SwingConstants.CENTER);
+        JLabel icone = new JLabel(new NavIcons(NavIcons.Type.SALLE, new Color(16, 150, 90), 18), SwingConstants.CENTER);
+        icone.setHorizontalAlignment(SwingConstants.CENTER);
         icone.setOpaque(true);
         icone.setBackground(new Color(224, 245, 231));
         icone.setPreferredSize(new Dimension(36, 36));
@@ -117,6 +123,26 @@ public class SallePanel extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 txtCode.setText(s.getCodeSal());
                 txtDesignation.setText(s.getDesignation());
+
+                if (selectedRow != null) {
+                    selectedRow.setBackground(Color.WHITE);
+                }
+                row.setBackground(new Color(220, 245, 230));
+                selectedRow = row;
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (row != selectedRow) {
+                    row.setBackground(new Color(240, 250, 244));
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (row != selectedRow) {
+                    row.setBackground(Color.WHITE);
+                }
             }
         });
         row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
