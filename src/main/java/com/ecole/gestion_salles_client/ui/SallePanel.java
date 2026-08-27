@@ -26,9 +26,11 @@ public class SallePanel extends JPanel {
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
         JLabel titre = new JLabel("Salles");
-        titre.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titre.setFont(Theme.FONT_TITLE);
+        titre.setForeground(Theme.TEXT_DARK);
         JLabel sousTitre = new JLabel("Gérez les salles de classe");
-        sousTitre.setForeground(Color.GRAY);
+        sousTitre.setFont(Theme.FONT_SUBTITLE);
+        sousTitre.setForeground(Theme.TEXT_GRAY);
         JPanel titles = new JPanel();
         titles.setLayout(new BoxLayout(titles, BoxLayout.Y_AXIS));
         titles.setOpaque(false);
@@ -49,9 +51,15 @@ public class SallePanel extends JPanel {
         form.setOpaque(false);
         form.add(new JLabel("Code:")); form.add(txtCode);
         form.add(new JLabel("Désignation:")); form.add(txtDesignation);
+        Theme.styledField(txtCode);
+        Theme.styledField(txtDesignation);
+
         JButton btnAjouter = new JButton("Ajouter");
         JButton btnModifier = new JButton("Modifier");
         JButton btnSupprimer = new JButton("Supprimer");
+        Theme.primaryButton(btnAjouter);
+        Theme.secondaryButton(btnModifier);
+        Theme.dangerButton(btnSupprimer);
         form.add(btnAjouter); form.add(btnModifier); form.add(btnSupprimer);
         add(form, BorderLayout.SOUTH);
 
@@ -96,10 +104,10 @@ public class SallePanel extends JPanel {
         texte.setOpaque(false);
         texte.setLayout(new BoxLayout(texte, BoxLayout.Y_AXIS));
         JLabel nomLabel = new JLabel(s.getDesignation());
-        nomLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        nomLabel.setFont(Theme.FONT_BODY_BOLD);
         JLabel infoLabel = new JLabel(s.getCodeSal());
         infoLabel.setForeground(Color.GRAY);
-        infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        infoLabel.setFont(Theme.FONT_BODY);
         texte.add(nomLabel);
         texte.add(infoLabel);
         row.add(texte, BorderLayout.CENTER);
@@ -123,6 +131,8 @@ public class SallePanel extends JPanel {
             s.setDesignation(txtDesignation.getText());
             api.create(s);
             chargerTout();
+            JOptionPane.showMessageDialog(this, "Salle ajoutée avec succès.",
+                    "Succès", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             erreur(ex);
         }
@@ -136,6 +146,8 @@ public class SallePanel extends JPanel {
             s.setDesignation(txtDesignation.getText());
             api.update(code, s);
             chargerTout();
+            JOptionPane.showMessageDialog(this, "Salle modifiée avec succès.",
+                    "Succès", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             erreur(ex);
         }
@@ -145,11 +157,22 @@ public class SallePanel extends JPanel {
         try {
             String code = txtCode.getText();
             if (code.isEmpty()) return;
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Supprimer cette salle ?", "Confirmation", JOptionPane.YES_NO_OPTION);
+            if (confirm != JOptionPane.YES_OPTION) return;
             api.delete(code);
             chargerTout();
+            JOptionPane.showMessageDialog(this, "Salle supprimée.",
+                    "Succès", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             erreur(ex);
         }
+
+    }
+    public void resetPanel() {
+        txtCode.setText("");
+        txtDesignation.setText("");
+        chargerTout();
     }
 
     private void erreur(Exception ex) {

@@ -4,11 +4,13 @@ import com.ecole.gestion_salles_client.model.Prof;
 import com.ecole.gestion_salles_client.service.ProfApiService;
 
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class ProfPanel extends JPanel {
 
@@ -21,18 +23,21 @@ public class ProfPanel extends JPanel {
     private final JTextField txtPrenom = new JTextField(10);
     private final JTextField txtGrade = new JTextField(10);
 
+    private List<Prof> tousLesProfs = List.of();
+
     public ProfPanel() {
         setLayout(new BorderLayout(0, 16));
         setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
         setBackground(Color.WHITE);
 
-        // En-tête
         JPanel header = new JPanel(new BorderLayout());
         header.setOpaque(false);
         JLabel titre = new JLabel("Professeurs");
-        titre.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        titre.setFont(Theme.FONT_TITLE);
+        titre.setForeground(Theme.TEXT_DARK);
         JLabel sousTitre = new JLabel("Gérez le corps enseignant");
-        sousTitre.setForeground(Color.GRAY);
+        sousTitre.setFont(Theme.FONT_SUBTITLE);
+        sousTitre.setForeground(Theme.TEXT_GRAY);
         JPanel titles = new JPanel();
         titles.setLayout(new BoxLayout(titles, BoxLayout.Y_AXIS));
         titles.setOpaque(false);
@@ -41,43 +46,59 @@ public class ProfPanel extends JPanel {
         header.add(titles, BorderLayout.WEST);
         add(header, BorderLayout.NORTH);
 
-        // Centre : recherche + liste + formulaire
         JPanel center = new JPanel(new BorderLayout(0, 12));
         center.setOpaque(false);
 
-        txtRecherche.setBorder(BorderFactory.createTitledBorder(""));
         JPanel searchWrap = new JPanel(new BorderLayout());
         searchWrap.setOpaque(false);
-        JLabel loupe = new JLabel(" 🔍 ");
-        searchWrap.add(loupe, BorderLayout.WEST);
+        searchWrap.add(new JLabel(" 🔍 "), BorderLayout.WEST);
         searchWrap.add(txtRecherche, BorderLayout.CENTER);
         searchWrap.setBackground(new Color(245, 245, 243));
         searchWrap.setBorder(BorderFactory.createEmptyBorder(6, 10, 6, 10));
         center.add(searchWrap, BorderLayout.NORTH);
+        Theme.styledField(txtRecherche);
 
         listContainer.setLayout(new BoxLayout(listContainer, BoxLayout.Y_AXIS));
         listContainer.setBackground(Color.WHITE);
         JScrollPane scroll = new JScrollPane(listContainer);
         scroll.setBorder(null);
         center.add(scroll, BorderLayout.CENTER);
-
         add(center, BorderLayout.CENTER);
 
-        // Formulaire bas (ajout/modif/suppression, plus simple, plus discret)
-        JPanel form = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel form = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 8));
         form.setOpaque(false);
-        form.add(new JLabel("Code:")); form.add(txtCode);
-        form.add(new JLabel("Nom:")); form.add(txtNom);
-        form.add(new JLabel("Prénom:")); form.add(txtPrenom);
-        form.add(new JLabel("Grade:")); form.add(txtGrade);
+
+        Theme.styledField(txtCode);
+        Theme.styledField(txtNom);
+        Theme.styledField(txtPrenom);
+        Theme.styledField(txtGrade);
+
+        JLabel lblCode = new JLabel("Code:"); lblCode.setFont(Theme.FONT_LABEL);
+        JLabel lblNom = new JLabel("Nom:"); lblNom.setFont(Theme.FONT_LABEL);
+        JLabel lblPrenom = new JLabel("Prénom:"); lblPrenom.setFont(Theme.FONT_LABEL);
+        JLabel lblGrade = new JLabel("Grade:"); lblGrade.setFont(Theme.FONT_LABEL);
+
+        form.add(lblCode); form.add(txtCode);
+        form.add(lblNom); form.add(txtNom);
+        form.add(lblPrenom); form.add(txtPrenom);
+        form.add(lblGrade); form.add(txtGrade);
+
         JButton btnAjouter = new JButton("Ajouter");
         JButton btnModifier = new JButton("Modifier");
         JButton btnSupprimer = new JButton("Supprimer");
+        Theme.primaryButton(btnAjouter);
+        Theme.secondaryButton(btnModifier);
+        Theme.dangerButton(btnSupprimer);
         form.add(btnAjouter); form.add(btnModifier); form.add(btnSupprimer);
         add(form, BorderLayout.SOUTH);
 
-        // Actions
-        txtRecherche.addActionListener(e -> rechercher());
+        // Recherche automatique : filtre à chaque frappe (nom OU prénom OU code)
+        txtRecherche.getDocument().addDocumentListener(new DocumentListener() {
+            public void insertUpdate(DocumentEvent e) { filtrer(); }
+            public void removeUpdate(DocumentEvent e) { filtrer(); }
+            public void changedUpdate(DocumentEvent e) { filtrer(); }
+        });
+
         btnAjouter.addActionListener(e -> ajouter());
         btnModifier.addActionListener(e -> modifier());
         btnSupprimer.addActionListener(e -> supprimer());
@@ -87,19 +108,26 @@ public class ProfPanel extends JPanel {
 
     private void chargerTout() {
         try {
-            afficherListe(api.getAll());
+            tousLesProfs = api.getAll();
+            afficherListe(tousLesProfs);
         } catch (Exception ex) {
             erreur(ex);
         }
     }
 
-    private void rechercher() {
-        try {
-            String nom = txtRecherche.getText().trim();
-            afficherListe(nom.isEmpty() ? api.getAll() : api.searchByNom(nom));
-        } catch (Exception ex) {
-            erreur(ex);
+    private void filtrer() {
+        String q = txtRecherche.getText().trim().toLowerCase();
+        if (q.isEmpty()) {
+            afficherListe(tousLesProfs);
+            return;
         }
+        List<Prof> filtres = tousLesProfs.stream()
+                .filter(p ->
+                        (p.getNom() != null && p.getNom().toLowerCase().contains(q)) ||
+                                (p.getPrenom() != null && p.getPrenom().toLowerCase().contains(q)) ||
+                                (p.getCodeProf() != null && p.getCodeProf().toLowerCase().contains(q)))
+                .collect(Collectors.toList());
+        afficherListe(filtres);
     }
 
     private void afficherListe(List<Prof> profs) {
@@ -118,8 +146,7 @@ public class ProfPanel extends JPanel {
         row.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 56));
 
-        String initiales = initiales(p);
-        JLabel avatar = new JLabel(initiales, SwingConstants.CENTER);
+        JLabel avatar = new JLabel(initiales(p), SwingConstants.CENTER);
         avatar.setOpaque(true);
         avatar.setBackground(new Color(224, 231, 255));
         avatar.setForeground(new Color(60, 80, 200));
@@ -131,10 +158,10 @@ public class ProfPanel extends JPanel {
         texte.setOpaque(false);
         texte.setLayout(new BoxLayout(texte, BoxLayout.Y_AXIS));
         JLabel nomLabel = new JLabel(p.getNom() + " " + safe(p.getPrenom()));
-        nomLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        nomLabel.setFont(Theme.FONT_BODY_BOLD);
         JLabel infoLabel = new JLabel(p.getCodeProf() + " · " + safe(p.getGrade()));
         infoLabel.setForeground(Color.GRAY);
-        infoLabel.setFont(new Font("Segoe UI", Font.PLAIN, 11));
+        infoLabel.setFont(Theme.FONT_BODY);
         texte.add(nomLabel);
         texte.add(infoLabel);
         row.add(texte, BorderLayout.CENTER);
@@ -149,7 +176,6 @@ public class ProfPanel extends JPanel {
             }
         });
         row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-
         return row;
     }
 
@@ -159,9 +185,7 @@ public class ProfPanel extends JPanel {
         return (n + pr).toUpperCase();
     }
 
-    private String safe(String s) {
-        return s == null ? "" : s;
-    }
+    private String safe(String s) { return s == null ? "" : s; }
 
     private void ajouter() {
         try {
@@ -172,6 +196,8 @@ public class ProfPanel extends JPanel {
             p.setGrade(txtGrade.getText());
             api.create(p);
             chargerTout();
+            JOptionPane.showMessageDialog(this, "Professeur ajouté avec succès.",
+                    "Succès", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             erreur(ex);
         }
@@ -187,6 +213,8 @@ public class ProfPanel extends JPanel {
             p.setGrade(txtGrade.getText());
             api.update(code, p);
             chargerTout();
+            JOptionPane.showMessageDialog(this, "Professeur modifié avec succès.",
+                    "Succès", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             erreur(ex);
         }
@@ -196,14 +224,28 @@ public class ProfPanel extends JPanel {
         try {
             String code = txtCode.getText();
             if (code.isEmpty()) return;
+            int confirm = JOptionPane.showConfirmDialog(this,
+                    "Supprimer ce professeur ?", "Confirmation", JOptionPane.YES_NO_OPTION);
+            if (confirm != JOptionPane.YES_OPTION) return;
             api.delete(code);
             chargerTout();
+            JOptionPane.showMessageDialog(this, "Professeur supprimé.",
+                    "Succès", JOptionPane.INFORMATION_MESSAGE);
         } catch (Exception ex) {
             erreur(ex);
         }
     }
+    public void resetPanel() {
+        txtCode.setText("");
+        txtNom.setText("");
+        txtPrenom.setText("");
+        txtGrade.setText("");
+        txtRecherche.setText("");
+        chargerTout();
+    }
 
     private void erreur(Exception ex) {
-        JOptionPane.showMessageDialog(this, "Erreur : " + ex.getMessage());
+        JOptionPane.showMessageDialog(this, "Erreur : " + ex.getMessage(),
+                "Erreur", JOptionPane.ERROR_MESSAGE);
     }
 }
