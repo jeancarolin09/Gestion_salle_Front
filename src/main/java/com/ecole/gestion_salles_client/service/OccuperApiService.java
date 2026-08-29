@@ -30,7 +30,10 @@ public class OccuperApiService {
         HttpRequest req = HttpRequest.newBuilder(URI.create(url))
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
-        client.send(req, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());
+        if (res.statusCode() < 200 || res.statusCode() >= 300) {
+            throw new RuntimeException("Échec de l'ajout (code " + res.statusCode() + ") : " + res.body());
+        }
     }
 
     public void delete(String codeProf, String codeSal, LocalDate date) throws Exception {
@@ -38,6 +41,9 @@ public class OccuperApiService {
         HttpRequest req = HttpRequest.newBuilder(URI.create(url))
                 .DELETE()
                 .build();
-        client.send(req, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> res = client.send(req, HttpResponse.BodyHandlers.ofString());
+        if (res.statusCode() < 200 || res.statusCode() >= 300) {
+            throw new RuntimeException("Échec de la suppression (code " + res.statusCode() + ") : " + res.body());
+        }
     }
 }

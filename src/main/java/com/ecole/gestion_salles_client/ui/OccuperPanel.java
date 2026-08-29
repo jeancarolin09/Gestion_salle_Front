@@ -343,10 +343,21 @@ public class OccuperPanel extends JPanel {
         content.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         content.setBackground(Color.WHITE);
 
-        JComboBox<String> comboProf = new JComboBox<>();
+        JComboBox<Prof> comboProf = new JComboBox<>();
         JComboBox<String> comboSalle = new JComboBox<>();
+        comboProf.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Prof p) {
+                    setText(p.getNom());
+                }
+                return this;
+            }
+        });
         try {
-            for (Prof p : profApi.getAll()) comboProf.addItem(p.getNom());
+            for (Prof p : profApi.getAll()) comboProf.addItem(p);
             for (Salle s : salleApi.getAll()) comboSalle.addItem(s.getCodeSal());
         } catch (Exception ex) {
             erreur(ex);
@@ -380,14 +391,14 @@ public class OccuperPanel extends JPanel {
         btnAnnuler.addActionListener(e -> dialog.dispose());
         btnAjouter.addActionListener(e -> {
             try {
-                String codeProf = (String) comboProf.getSelectedItem();
+                Prof profSelectionne = (Prof) comboProf.getSelectedItem();
                 String codeSal = (String) comboSalle.getSelectedItem();
                 LocalDate date = datePicker.getDate();
-                if (codeProf == null || codeSal == null || date == null) {
+                if (profSelectionne == null || codeSal == null || date == null) {
                     JOptionPane.showMessageDialog(dialog, "Remplis tous les champs.");
                     return;
                 }
-                api.create(codeProf, codeSal, date);
+                api.create(profSelectionne.getCodeProf(), codeSal, date);
                 dialog.dispose();
                 refresh();
                 JOptionPane.showMessageDialog(this, "Occupation ajoutée avec succès.",

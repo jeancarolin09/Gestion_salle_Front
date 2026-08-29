@@ -18,8 +18,8 @@ public class MainFrame extends JFrame {
     private final OccuperPanel occuperPanel = new OccuperPanel();
 
     public MainFrame() {
-        setTitle("SallesApp");
-        setSize(1250, 720);
+        setTitle("Gesion des Salles");
+        setSize(1250, 920);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -57,7 +57,37 @@ public class MainFrame extends JFrame {
         sidebar.add(navButton("Occupations", "occupations", NavIcons.Type.OCCUPATION));
 
         sidebar.add(Box.createVerticalGlue());
+
+        sidebar.add(buildLogoutButton());
+
         return sidebar;
+    }
+
+    private JButton buildLogoutButton() {
+        JButton btnDeconnexion = new JButton("Déconnexion");
+        btnDeconnexion.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnDeconnexion.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
+        btnDeconnexion.setHorizontalAlignment(SwingConstants.LEFT);
+        btnDeconnexion.setFocusPainted(false);
+        btnDeconnexion.setFont(Theme.FONT_SIDEBAR);
+        btnDeconnexion.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnDeconnexion.putClientProperty("JButton.buttonType", "roundRect");
+        btnDeconnexion.putClientProperty("FlatLaf.style",
+                "background: #FEF2F2; foreground: #DC2626; " +
+                        "hoverBackground: #FEE2E2; pressedBackground: #FECACA; " +
+                        "arc: 10; borderWidth: 0; margin: 4,12,4,12");
+        btnDeconnexion.addActionListener(e -> seDeconnecter());
+        return btnDeconnexion;
+    }
+
+    private void seDeconnecter() {
+        int confirm = JOptionPane.showConfirmDialog(this,
+                "Voulez-vous vraiment vous déconnecter ?", "Déconnexion",
+                JOptionPane.YES_NO_OPTION);
+        if (confirm != JOptionPane.YES_OPTION) return;
+
+        dispose();
+        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 
     private JButton navButton(String label, String cardName, NavIcons.Type iconType) {
@@ -115,6 +145,6 @@ public class MainFrame extends JFrame {
 
     public static void main(String[] args) {
         FlatLightLaf.setup();
-        SwingUtilities.invokeLater(() -> new MainFrame().setVisible(true));
+        SwingUtilities.invokeLater(() -> new LoginFrame().setVisible(true));
     }
 }
